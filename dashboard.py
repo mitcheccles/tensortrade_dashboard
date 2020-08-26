@@ -22,7 +22,7 @@ class DashboardServer():
 
         app.layout = html.Div(
             html.Div([
-                html.H4('A Test'),
+                html.H4('Simulation run:'),
                 dcc.Graph(id='live-update-graph'),
                 dcc.Interval(
                     id='interval-component',

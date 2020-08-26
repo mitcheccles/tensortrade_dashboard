@@ -1,4 +1,3 @@
-import pandas as pd
 import tensortrade.env.default as default
 from tensortrade.data.cdd import CryptoDataDownload
 from tensortrade.feed.core import Stream, DataFeed
@@ -20,20 +19,8 @@ t.start()
 
 def build_env():
 
-    def rsi(price: Stream[float], period: float) -> Stream[float]:
-        r = price.diff()
-        upside = r.clamp_min(0).abs()
-        downside = r.clamp_max(0).abs()
-        rs = upside.ewm(alpha=1 / period).mean() / downside.ewm(alpha=1 / period).mean()
-        return 100*(1 - (1 + rs) ** -1)
-
     cdd = CryptoDataDownload()
     data = cdd.fetch("Coinbase", "USD", "BTC", "1h")
-    # data['vol'] = (data['volume'] - data['volume'].mean())/(data['volume'].max() - data['volume'].min())
-    # data["roc"] = data["close"].pct_change(5).fillna(0)
-    # data["rolling_fast"] = data['close'].rolling(13).mean().fillna(0)
-
-    # data = load_csv("Coinbase_BTCUSD_1h.csv")
 
     features = []
     for c in data.columns[1:]:
@@ -41,14 +28,8 @@ def build_env():
         features += [s]
 
     cp = Stream.select(features, lambda s: s.name == "close")
-    # vol = Stream.select(features, lambda s: s.name == "vol")
-    # roc = Stream.select(features, lambda s: s.name == "roc")
-    # fast = Stream.select(features, lambda s: s.name == "rolling_fast")
+
     features =[
-        # rsi(cp, period=14).rename("rsi"),
-        # vol,
-        # roc,
-        # fast,
         cp
     ]
     feed = DataFeed(features)
@@ -78,19 +59,15 @@ def build_env():
     reward_scheme = rewards.SimpleProfit()
     action_scheme = actions.BSH(cash, asset)
 
-    # rend = mtc.MatplotlibTradingChart()
 
     env = default.create(
         portfolio=portfolio,
-    #     action_scheme="managed-risk",
-    #     reward_scheme="risk-adjusted",
         action_scheme=action_scheme,
         reward_scheme=reward_scheme,
         stopper=stoppers.MaxLossStopper(1000.0),
         feed=feed,
         renderer_feed=renderer_feed,
         renderer=default.renderers.PlotlyTradingChart(display=True, height=700, save_format="html"),
-        # renderer=rend,
         window_size=20
     )
     return env

@@ -1,0 +1,3 @@
+dash==1.14.0
+tensortrade==0.2.0-beta.2
+plotly==4.9.0
